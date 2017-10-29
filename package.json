@@ -1,0 +1,29 @@
+{
+  "name": "dist-css",
+  "version": "0.0.0",
+  "description": "Create dist version of your CSS.",
+  "bin": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamen/dist-css.git"
+  },
+  "keywords": [
+    "dist",
+    "css",
+    "postcss",
+    "clean-css",
+    "cli"
+  ],
+  "author": "Jamen Marz <jamenmarz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jamen/dist-css/issues"
+  },
+  "homepage": "https://github.com/jamen/dist-css#readme",
+  "dependencies": {
+    "autoprefixer": "^7.1.6",
+    "clean-css": "^4.1.9",
+    "minimist": "^1.2.0",
+    "postcss": "^6.0.13"
+  }
+}
