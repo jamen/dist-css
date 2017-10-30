@@ -1,19 +1,20 @@
 
-# dist-css (WIP)
+# dist-css
 
 > Create dist version of your CSS.
 
-Combines multiple tools for easily creating dist version of your CSS.
+Combines tools for adding comptibility and optimizations to your CSS compiler's
+output.
 
 ```
-$ dist-css -f dist/app.css
+$ dist-css dist/app.css
 ```
 
 This will
 
-- Run `postcss` with `autoprefixer`
-- Run `clean-css` on the result of postcss
-- Create `.css.map` beside the output
+- Manage a sourcemap file that comes beside an input file
+- Run `postcss` with `autoprefixer` on the input
+- Run `clean-css` on the results
 
 ## Install
 
@@ -23,22 +24,38 @@ $ npm i -D dist-css
 
 ## Usage
 
-### `dist-css [...options]`
+### `dist-css [file] [...options]`
 
- - `--input`, `-i` the input file to compile
- - `--output`, `-o` the output file
- - `--file`, `-f` shorthand for when `-i` and `-o` are the same.
- - `--sourcemap`, `-m` enable sourcemaps (on by default)
-
-When no input or output are provided, it reads from stdio.
-
-Example usages:
+The easiest way to use the tool is transforming a file in place:
 
 ```
-dist-css -f dist/app.css
-dist-css --no-sourcemap -f dist/app.css
-dist-css -i web/app.css -o dist/app.css
+$ dist-css dist/app.css
+```
 
-# From stdio
-cat dist/app.css | dist-css > dist/app.css
+It will also detect when you want to use stdio:
+
+```
+# Using stdout
+$ dist-css dist/app.css | wc -c
+6780
+
+# Using stdin
+$ echo "* { box-sizing: border-box }" | dist-css dist/app.css
+finished dist-css at dist/app.css
+
+# Using both
+$ echo "a { ... }" | dist-css > dist/app.css
+```
+
+Alternative to this, use the `--input`, `-i` and `--output`, `-o` flags, where
+if a flag is absent it uses the stdio equivalent instead.
+
+Also note that you can only accept a sourcemap with an input path, and write a
+sourcemap with an output path.  Inline sourcemaps are not supported out of
+simplicity.
+
+To disable sourcemaps regardless, supply the `--no-sourcemaps` flag:
+
+```
+$ dist-css --no-sourcemaps dist/app.css
 ```

@@ -6,83 +6,109 @@ const postcss = require('postcss')
 const CleanCSS = require('clean-css')
 const autoprefixer = require('autoprefixer')
 
-const cli = require('minimist')(process.argv.slice(2), {
-  default: {
-    sourcemap: true,
-  },
+const options = require('minimist')(process.argv.slice(2), {
+  boolean: ['sourcemap'],
   alias: {
-    sourcemap: 'm',
     output: 'o',
-    input: 'i',
-    file: 'f'
+    input: 'i'
   }
 })
 
-// Shortcut for transforming a single file
-if (cli.file) cli.input = cli.output = cli.file
+const hasStdout = !process.stdout.isTTY
+const hasStdin = !process.stdin.isTTY
+const noStdio = !hasStdout && !hasStdin
 
-// Create streams from input/output options
-const input = cli.input ? fs.createReadStream(cli.input) : process.stdin
-const output = cli.output ? fs.createWriteStream(cli.output) : process.stdout
+if (options._[0]) {
+  if (noStdio) options.file = options._[0]
+  else if (hasStdout) options.input = options._[0]
+  else if (hasStdin) options.output = options._[0]
+}
+
+// Shortcut for transforming a single file
+if (options.file) options.input = options.output = options.file
+
+// Handle detection of sourcemap
+const hasSourcemap = options.sourcemap != null
+if (!options.output && hasSourcemap) {
+  throw new Error('sourcemap requires an output path')
+} else if (!hasSourcemap) {
+  options.sourcemap = !!options.output
+}
+
+// Create input stream from file or stdin
+const input = options.input
+  ? fs.createReadStream(path.resolve(options.input))
+  : process.stdin
 
 // Read data
 const bufs = []
 input.on('data', x => bufs.push(x))
-input.on('end', () => maybeSourcemap(Buffer.concat(bufs)))
+input.on('end', () => sourcemapMaybe(Buffer.concat(bufs)))
 
-function maybeSourcemap (css) {
-  const sm = cli.sourcemap
-  if (sm && sm !== 'inline' && output !== process.stdout) {
-    compile(css, path.resolve(sm && sm !== true ? sm : cli.output + '.map'))
+// Read sourcemap maybe
+function sourcemapMaybe (css) {
+  if (options.sourcemap) {
+    fs.readFile(path.resolve(options.output + '.map'), 'utf8', (err, data) => {
+      write(css, data)
+    })
   } else {
-    compile(css, null)
+    write(css, null)
   }
 }
 
-function compile (css, sourcemap) {
+function write (css, sourcemapInput) {
+  compile(css, sourcemapInput).then(result => {
+    if (result.map) sourcemapInput = JSON.stringify(result.map)
+    return minify(result.css, sourcemapInput)
+  }).then(result => {
+    return new Promise((resolve, reject) => {
+      let lock = true
+
+      if (options.sourcemap && result.sourceMap) {
+        fs.writeFile(options.output + '.map', result.sourceMap, (err) => {
+          if (err) return reject(err)
+          if (!lock) return resolve()
+          else lock = false
+        })
+      }
+
+      if (options.output) {
+        fs.writeFile(options.output, result.styles, (err) => {
+          if (err) return reject(err)
+          if (!lock) return resolve()
+          else lock = false
+        })
+      } else {
+        process.stdout.write(result.styles)
+        if (!lock) resolve()
+        else lock = false
+      }
+    }).then(() => {
+      if (!hasStdout) {
+        console.log(`finished dist-css at ${options.output}`)
+      }
+    }).catch(err => {
+      console.error(err)
+    })
+  })
+}
+
+function compile (css) {
+  return postcss([ autoprefixer ]).process(css, {
+    from: options.input && path.resolve(options.input),
+    to: options.output && path.resolve(options.output),
+    map: options.sourcemap && {
+      inline: false,
+      from: path.resolve(options.input + '.map')
+    }
+  })
+}
+
+function minify (css, sourcemapInput) {
   const clean = new CleanCSS({
-    sourceMap: cli.sourcemap !== 'inline' && cli.sourcemap,
-    sourceMapInlineSources: cli.sourcemap === 'inline',
+    sourceMap: options.sourcemap,
     returnPromise: true
   })
 
-  console.log(sourcemap)
-
-  postcss([ autoprefixer ]).process(css, {
-    from: path.resolve(cli.input),
-    to: path.resolve(cli.output),
-    map: sourcemap && {
-      inline: cli.sourcemp === 'inline',
-      // from: clisourcemap
-    }
-  })
-  .then(result => {
-    if (result.map) {
-      const sourcemapData = JSON.stringify(result.map)
-      return clean.minify(result.css, sourcemapData).then(output => {
-        return new Promise((resolve, reject) => {
-          fs.writeFile(sourcemap, sourcemapData, (err) => {
-            if (err) return reject(err)
-            return resolve(output.styles)
-          })
-        })
-      })
-    } else {
-      return clean.minify(result.css).then(x => x.styles)
-    }
-  })
-  .then(css => {
-    // console.log(cli.output)
-    if (output !== process.stdout) {
-      output.end(css)
-    } else {
-      output.write(css)
-    }
-  })
-  .then(() => {
-    // console.log('Finished')
-  })
-  .catch(err => {
-    console.error(err)
-  })
+  return clean.minify(css, sourcemapInput)
 }
