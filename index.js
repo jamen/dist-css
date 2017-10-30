@@ -28,11 +28,11 @@ const output = cli.output ? fs.createWriteStream(cli.output) : process.stdout
 // Read data
 const bufs = []
 input.on('data', x => bufs.push(x))
-input.on('end', () => thenSourcemap(Buffer.concat(bufs)))
+input.on('end', () => maybeSourcemap(Buffer.concat(bufs)))
 
-function thenSourcemap (css) {
+function maybeSourcemap (css) {
   const sm = cli.sourcemap
-  if (sm && sm !== 'inline' && input !== process.stdin) {
+  if (sm && sm !== 'inline' && output !== process.stdout) {
     compile(css, path.resolve(sm && sm !== true ? sm : cli.output + '.map'))
   } else {
     compile(css, null)
