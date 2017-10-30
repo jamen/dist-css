@@ -6,7 +6,7 @@
 Combines tools for adding comptibility and optimizations to your CSS compiler's
 output.
 
-```
+```sh
 $ dist-css dist/app.css
 ```
 
@@ -16,9 +16,11 @@ This will
 - Run `postcss` with `autoprefixer` on the input
 - Run `clean-css` on the results
 
+Also see [`dist-js`](https://github.com/jamen/dist-js) for your JS files.
+
 ## Install
 
-```
+```sh
 $ npm i -D dist-css
 ```
 
@@ -28,13 +30,13 @@ $ npm i -D dist-css
 
 The easiest way to use the tool is transforming a file in place:
 
-```
+```sh
 $ dist-css dist/app.css
 ```
 
 It will also detect when you want to use stdio:
 
-```
+```sh
 # Using stdout
 $ dist-css dist/app.css | wc -c
 6780
@@ -54,8 +56,8 @@ Also note that you can only accept a sourcemap with an input path, and write a
 sourcemap with an output path.  Inline sourcemaps are not supported out of
 simplicity.
 
-To disable sourcemaps regardless, supply the `--no-sourcemaps` flag:
+To disable sourcemaps regardless, supply the `--no-sourcemap` flag:
 
-```
-$ dist-css --no-sourcemaps dist/app.css
+```sh
+$ dist-css --no-sourcemap dist/app.css
 ```
