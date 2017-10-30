@@ -11,9 +11,9 @@ $ dist-css -f dist/app.css
 
 This will
 
- - Run `postcss` with `autoprefixer`
- - Run `clean-css` on the result of postcss
- - Creates `.css.map` where your file outputs.
+- Run `postcss` with `autoprefixer`
+- Run `clean-css` on the result of postcss
+- Create `.css.map` beside the output
 
 ## Install
 
