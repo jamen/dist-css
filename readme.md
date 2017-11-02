@@ -21,7 +21,7 @@ Also see [`@jamen/dist-js`](https://github.com/jamen/dist-js) for your JS files.
 ## Install
 
 ```sh
-$ npm i -D dist-css
+$ npm i -D @jamen/dist-css
 ```
 
 ## Usage
