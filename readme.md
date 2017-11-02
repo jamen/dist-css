@@ -1,5 +1,5 @@
 
-# dist-css
+# @jamen/dist-css
 
 > Create dist version of your CSS.
 
@@ -16,7 +16,7 @@ This will
 - Run `clean-css`.
 - Use sourcemaps when given input and output paths.
 
-Also see [`dist-js`](https://github.com/jamen/dist-js) for your JS files.
+Also see [`@jamen/dist-js`](https://github.com/jamen/dist-js) for your JS files.
 
 ## Install
 
