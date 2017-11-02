@@ -62,26 +62,30 @@ function write (css, sourcemapInput) {
     return minify(result.css, sourcemapInput)
   }).then(result => {
     return new Promise((resolve, reject) => {
-      let lock = true
-
-      if (options.sourcemap && result.sourceMap) {
-        fs.writeFile(options.output + '.map', result.sourceMap, (err) => {
-          if (err) return reject(err)
-          if (!lock) return resolve()
-          else lock = false
-        })
+      const finish = (err) => {
+        if (err) reject(err)
+        else resolve()
       }
 
-      if (options.output) {
-        fs.writeFile(options.output, result.styles, (err) => {
+      const output = (done) => {
+        if (options.output) {
+          fs.writeFile(options.output, result.styles, (err) => {
+            if (err) done(err)
+            else done()
+          })
+        } else {
+          process.stdout.write(result.styles)
+          done()
+        }
+      }
+
+      if (options.sourcemap && result.sourceMap) {
+        output(err => {
           if (err) return reject(err)
-          if (!lock) return resolve()
-          else lock = false
+          fs.writeFile(options.output + '.map', result.sourceMap, finish)
         })
       } else {
-        process.stdout.write(result.styles)
-        if (!lock) resolve()
-        else lock = false
+        output(finish)
       }
     }).then(() => {
       if (!hasStdout) {

@@ -12,9 +12,9 @@ $ dist-css dist/app.css
 
 This will
 
-- Manage a sourcemap file that comes beside an input file
-- Run `postcss` with `autoprefixer` on the input
-- Run `clean-css` on the results
+- Run `postcss` with `autoprefixer`.
+- Run `clean-css`.
+- Use sourcemaps when given input and output paths.
 
 Also see [`dist-js`](https://github.com/jamen/dist-js) for your JS files.
 
